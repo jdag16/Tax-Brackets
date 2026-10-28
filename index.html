@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BC Paycheque 2026</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: inputs column beside a sticky pay stub; below, a full-width raise comparison split into employee and employer views */
+:root{
+  --bg:#f4f6f5; --surface:#ffffff; --fg:#17201d; --muted:#5d6b66; --line:#d8dfdc;
+  --accent:#1f6f5c; --accent-soft:#e3f0eb; --neg:#9a3b2e;
+  --cost:#8a4b12; --cost-soft:#f7ebdd;
+  --sans:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111715; --surface:#19211e; --fg:#e6ece9; --muted:#93a39d; --line:#2c3833;
+  --accent:#5fbf9f; --accent-soft:#1d3029; --neg:#e58a7b;
+  --cost:#e8a866; --cost-soft:#33261a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111715; --surface:#19211e; --fg:#e6ece9; --muted:#93a39d; --line:#2c3833;
+  --accent:#5fbf9f; --accent-soft:#1d3029; --neg:#e58a7b;
+  --cost:#e8a866; --cost-soft:#33261a; color-scheme:dark}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.5}
+.wrap{max-width:1040px;margin:0 auto;padding-block:28px 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-size:1.6rem;margin:0 0 4px;text-wrap:balance;letter-spacing:-.01em}
+h3{font-size:1.25rem;margin:0 0 4px;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 24px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,380px);gap:24px;align-items:start}
+@media (max-width:820px){.grid{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:20px;min-width:0}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:18px;min-width:0}
+.box h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 4px;font-weight:600}
+p.hint{margin:0 0 14px;color:var(--muted);font-size:.85rem}
+.rate-row{display:flex;gap:14px;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:4px;flex:1 1 140px;min-width:0}
+.field label{font-size:.82rem;color:var(--muted);font-weight:500}
+input{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%;box-sizing:border-box}
+input[type=number]{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+input:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.money,.pct{position:relative}
+.money::before{content:"$";position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-family:var(--mono)}
+.money input{padding-left:22px}
+.pct::after{content:"%";position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-family:var(--mono)}
+.pct input{padding-right:26px}
+.ded{display:grid;grid-template-columns:minmax(0,1fr) 130px;gap:8px 10px}
+.ded input.name{background:transparent;border-color:transparent;border-bottom:1px dashed var(--line);border-radius:0;padding-left:2px}
+.ded input.name:hover{border-bottom-color:var(--muted)}
+.subtotal{display:flex;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:.9rem;color:var(--muted)}
+.subtotal b{font-family:var(--mono);color:var(--fg);font-weight:600}
+.stub{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px)}
+.net{background:var(--accent-soft);border-radius:6px;padding:14px 16px;margin-bottom:14px}
+.net .lbl{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:600}
+.net .val{font-family:var(--mono);font-size:2rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums;line-height:1.2}
+.net .meta{font-size:.82rem;color:var(--muted)}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;text-align:right;padding:4px 0 6px 10px;white-space:nowrap}
+th:first-child{text-align:left;padding-left:0}
+td{padding:6px 0;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+td.n{text-align:right;font-family:var(--mono);font-size:.85rem;padding-left:10px;white-space:nowrap}
+tr.minus td.n{color:var(--neg)}
+tr.total td{font-weight:600;border-top:2px solid var(--fg)}
+tr.section td{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;padding-top:12px;border-top:none}
+td.up{color:var(--accent);font-weight:600}
+td.cost{color:var(--cost);font-weight:600}
+.facts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.chip{font-size:.78rem;border:1px solid var(--line);border-radius:99px;padding:2px 10px;color:var(--muted)}
+.chip b{color:var(--fg);font-family:var(--mono);font-weight:600}
+.note{font-size:.78rem;color:var(--muted);margin-top:14px;line-height:1.45}
+
+/* Raise comparison */
+.compare{margin-top:40px;display:flex;flex-direction:column;gap:20px}
+.compare-head{display:flex;flex-direction:column;gap:2px}
+.setup{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:20px}
+@media (max-width:820px){.setup{grid-template-columns:minmax(0,1fr)}}
+.erates{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px}
+@media (max-width:480px){.erates{grid-template-columns:minmax(0,1fr)}}
+.verdict{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+@media (max-width:700px){.verdict{grid-template-columns:minmax(0,1fr)}}
+.v{padding:16px 18px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.v + .v{border-left:1px solid var(--line)}
+@media (max-width:700px){.v + .v{border-left:none;border-top:1px solid var(--line)}}
+.v .lbl{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;font-weight:600;color:var(--muted)}
+.v .big{font-family:var(--mono);font-size:1.7rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.25}
+.v .small{font-size:.83rem;color:var(--muted)}
+.v.emp{background:var(--accent-soft)} .v.emp .lbl,.v.emp .big{color:var(--accent)}
+.v.er{background:var(--cost-soft)} .v.er .lbl,.v.er .big{color:var(--cost)}
+.bar{height:10px;border-radius:99px;background:var(--line);display:flex;overflow:hidden;margin-top:10px}
+.bar span{display:block;height:100%}
+.bar .k{background:var(--accent)} .bar .t{background:var(--neg)} .bar .o{background:var(--cost)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.78rem;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:0}
+.sides{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+@media (max-width:820px){.sides{grid-template-columns:minmax(0,1fr)}}
+.side-title{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.dot{width:10px;height:10px;border-radius:50%}
+.box.side-emp{border-top:3px solid var(--accent)}
+.box.side-er{border-top:3px solid var(--cost)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>BC Paycheque 2026</h1>
+  <p class="sub">Semi-monthly pay (24 pays a year), British Columbia, 2026 federal and provincial rates.</p>
+
+  <div class="grid">
+    <div class="col">
+      <section class="box">
+        <h2>Pay</h2>
+        <p class="hint">This is the new rate. Example values shown.</p>
+        <div class="rate-row">
+          <div class="field"><label for="rate">New hourly rate</label><div class="money"><input id="rate" type="number" min="0" step="0.01" value="35.00"></div></div>
+          <div class="field"><label for="hours">Hours per week</label><input id="hours" type="number" min="0" step="0.25" value="40"></div>
+        </div>
+      </section>
+
+      <section class="box">
+        <h2>Pre-tax deductions</h2>
+        <p class="hint">Per pay. These lower taxable income. Rename any line.</p>
+        <div class="ded" id="tax"></div>
+        <div class="subtotal"><span>Total per pay</span><b id="taxSum">$0.00</b></div>
+      </section>
+
+      <section class="box">
+        <h2>Benefit deductions</h2>
+        <p class="hint">Per pay, after tax. Rename any line.</p>
+        <div class="ded" id="ben"></div>
+        <div class="subtotal"><span>Total per pay</span><b id="benSum">$0.00</b></div>
+      </section>
+    </div>
+
+    <aside class="box stub" aria-live="polite">
+      <div class="net">
+        <div class="lbl">Net per pay at new rate</div>
+        <div class="val" id="netPay">$0.00</div>
+        <div class="meta" id="netAnnual"></div>
+      </div>
+      <div class="tbl"><table>
+        <thead><tr><th>Item</th><th>Per pay</th><th>Annual</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table></div>
+      <div class="facts">
+        <span class="chip">Marginal <b id="marg">0%</b></span>
+        <span class="chip">Avg tax <b id="avg">0%</b></span>
+        <span class="chip">Hours/pay <b id="hpp">0</b></span>
+      </div>
+      <p class="note">Estimate using the annualized method. CPP and EI are averaged across the year; in practice they stop once the yearly maximum is reached, so later cheques run higher. Claims beyond basic personal amounts (TD1) are not included.</p>
+    </aside>
+  </div>
+
+  <section class="compare">
+    <div class="compare-head">
+      <h3>Raise comparison</h3>
+      <p class="sub" style="margin:0">Current rate against the new rate above, same hours and deductions.</p>
+    </div>
+
+    <div class="setup">
+      <section class="box">
+        <h2>Current rate</h2>
+        <p class="hint">What the employee earns today.</p>
+        <div class="field"><label for="cur">Current hourly rate</label><div class="money"><input id="cur" type="number" min="0" step="0.01" value="32.00"></div></div>
+        <div class="facts" id="raiseFacts"></div>
+      </section>
+
+      <section class="box">
+        <h2>Employer cost settings</h2>
+        <p class="hint">Rates applied on top of wages. Adjust to your company.</p>
+        <div class="erates">
+          <div class="field"><label for="vac">Vacation pay</label><div class="pct"><input id="vac" type="number" min="0" step="0.1" value="4"></div></div>
+          <div class="field"><label for="eht">BC Employer Health Tax</label><div class="pct"><input id="eht" type="number" min="0" step="0.01" value="1.95"></div></div>
+          <div class="field"><label for="wcb">WorkSafeBC premium</label><div class="pct"><input id="wcb" type="number" min="0" step="0.01" value="0"></div></div>
+          <div class="field"><label for="erben">Pay-linked benefits / pension match</label><div class="pct"><input id="erben" type="number" min="0" step="0.1" value="0"></div></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="verdict" aria-live="polite">
+      <div class="v">
+        <span class="lbl">Raise on paper</span>
+        <span class="big" id="vGross">$0</span>
+        <span class="small" id="vGrossSub"></span>
+      </div>
+      <div class="v emp">
+        <span class="lbl">Employee takes home</span>
+        <span class="big" id="vNet">$0</span>
+        <span class="small" id="vNetSub"></span>
+      </div>
+      <div class="v er">
+        <span class="lbl">Employer pays</span>
+        <span class="big" id="vCost">$0</span>
+        <span class="small" id="vCostSub"></span>
+      </div>
+    </div>
+
+    <div class="box">
+      <h2>Where each extra employer dollar goes</h2>
+      <div class="bar" id="bar"><span class="k"></span><span class="t"></span><span class="o"></span></div>
+      <div class="legend">
+        <span><i style="background:var(--accent)"></i>Employee keeps <b id="lgK"></b></span>
+        <span><i style="background:var(--neg)"></i>Employee tax, CPP, EI <b id="lgT"></b></span>
+        <span><i style="background:var(--cost)"></i>Employer on-costs <b id="lgO"></b></span>
+      </div>
+    </div>
+
+    <div class="sides">
+      <section class="box side-emp">
+        <div class="side-title"><span class="dot" style="background:var(--accent)"></span><h2 style="margin:0">Employee side, annual</h2></div>
+        <div class="tbl"><table>
+          <thead><tr><th>Item</th><th>Current</th><th>New</th><th>Change</th></tr></thead>
+          <tbody id="empRows"></tbody>
+        </table></div>
+      </section>
+      <section class="box side-er">
+        <div class="side-title"><span class="dot" style="background:var(--cost)"></span><h2 style="margin:0">Employer side, annual</h2></div>
+        <div class="tbl"><table>
+          <thead><tr><th>Item</th><th>Current</th><th>New</th><th>Change</th></tr></thead>
+          <tbody id="erRows"></tbody>
+        </table></div>
+      </section>
+    </div>
+    <p class="note">Employer CPP matches the employee's CPP and CPP2. Employer EI is 1.4 times the employee premium. EHT (1.95% applies once BC payroll is over $1.5M), WorkSafeBC (varies by industry, find yours on your WorkSafeBC rate notice) and pay-linked benefits are charged on wages plus vacation pay. Flat-premium benefits like health and dental don't change with a raise, so they are left out. CPP and EI are calculated on base wages; WorkSafeBC's maximum assessable earnings cap is not applied.</p>
+  </section>
+</div>
+
+<script>
+const PAYS = 24;
+const TAX_DEFAULTS = ["Group RRSP","Pension plan (RPP)","Union dues","Other pre-tax","Other pre-tax"];
+const BEN_DEFAULTS = ["Extended health","Dental","Life insurance","Long-term disability","Other benefit"];
+
+function build(id, names){
+  const el = document.getElementById(id);
+  names.forEach((n,i)=>{
+    el.insertAdjacentHTML("beforeend",
+      `<input class="name" id="${id}-n${i}" value="${n}" aria-label="Deduction name ${i+1}">
+       <div class="money"><input id="${id}-v${i}" type="number" min="0" step="0.01" placeholder="0.00" aria-label="${n} per pay"></div>`);
+  });
+}
+build("tax", TAX_DEFAULTS);
+build("ben", BEN_DEFAULTS);
+
+const FED = [[58523,.14],[117045,.205],[181440,.26],[258482,.29],[Infinity,.33]];
+const BC  = [[50363,.056],[100728,.077],[115648,.105],[140430,.1229],[190405,.147],[265545,.168],[Infinity,.205]];
+function bracketTax(inc, b){ let t=0, lo=0; for(const [hi,r] of b){ if(inc>lo) t += (Math.min(inc,hi)-lo)*r; lo=hi; } return t; }
+function margRate(inc, b){ for(const [hi,r] of b) if(inc<=hi) return r; return b[b.length-1][1]; }
+
+const fmt = (v,d=2) => (v<0?"-":"") + "$" + Math.abs(v).toLocaleString("en-CA",{minimumFractionDigits:d,maximumFractionDigits:d});
+const sfmt = (v,d=2) => (v>0?"+":"") + fmt(v,d);
+const num = id => Math.max(0, parseFloat(document.getElementById(id).value) || 0);
+const sum = id => [0,1,2,3,4].reduce((a,i)=>a+num(`${id}-v${i}`),0);
+
+function compute(rate, hrs, preTaxPay, benPay, er){
+  const gross = rate*hrs*52;
+  const preTax = preTaxPay*PAYS;
+  const cpp1 = Math.max(0, Math.min(gross,74600)-3500)*0.0595;
+  const cpp2 = Math.max(0, Math.min(gross,85000)-74600)*0.04;
+  const ei = Math.min(gross,68900)*0.0163;
+  const cppBase = cpp1*(4.95/5.95);
+  const cppEnh = cpp1 - cppBase + cpp2;
+  const taxable = Math.max(0, gross - preTax - cppEnh);
+
+  let bpa = 16452;
+  if (taxable > 181440) bpa = taxable >= 258482 ? 14829 : 16452 - (taxable-181440)*(16452-14829)/(258482-181440);
+  const fed = Math.max(0, bracketTax(taxable,FED) - 0.14*(bpa + Math.min(1501,gross) + cppBase + ei));
+  let bc = Math.max(0, bracketTax(taxable,BC) - 0.056*(13216 + cppBase + ei));
+  bc = Math.max(0, bc - Math.max(0, 690 - 0.0356*Math.max(0, taxable-25570)));
+
+  const benefits = benPay*PAYS;
+  const net = gross - preTax - cpp1 - cpp2 - ei - fed - bc - benefits;
+
+  const vac = gross*er.vac;
+  const base = gross + vac;
+  const erCpp = cpp1 + cpp2, erEi = ei*1.4;
+  const eht = base*er.eht, wcb = base*er.wcb, erBen = base*er.ben;
+  const erTotal = gross + vac + erCpp + erEi + eht + wcb + erBen;
+
+  return {gross, preTax, cpp:cpp1+cpp2, ei, fed, bc, benefits, net, taxable,
+          vac, erCpp, erEi, eht, wcb, erBen, erTotal};
+}
+
+function rowsHTML(list){
+  return list.map(([lbl,a,b,cls]) => {
+    const d = b-a;
+    return `<tr class="${cls||""}"><td>${lbl}</td><td class="n">${fmt(a,0)}</td><td class="n">${fmt(b,0)}</td><td class="n ${cls==="total"?(list.kind):""}">${d===0?"$0":sfmt(d,0)}</td></tr>`;
+  }).join("");
+}
+
+function calc(){
+  const hrs = num("hours"), preTaxPay = sum("tax"), benPay = sum("ben");
+  const er = {vac:num("vac")/100, eht:num("eht")/100, wcb:num("wcb")/100, ben:num("erben")/100};
+  const N = compute(num("rate"), hrs, preTaxPay, benPay, er);
+  const C = compute(num("cur"),  hrs, preTaxPay, benPay, er);
+  const P = v => v/PAYS;
+
+  // Pay stub (new rate)
+  const stub = [
+    ["section","Earnings"], ["","Gross pay", N.gross],
+    ["section","Pre-tax"], ["minus","Pre-tax deductions", -N.preTax],
+    ["section","Statutory"], ["minus","CPP + CPP2", -N.cpp], ["minus","EI", -N.ei],
+    ["minus","Federal tax", -N.fed], ["minus","BC tax", -N.bc],
+    ["section","After tax"], ["minus","Benefit deductions", -N.benefits],
+    ["total","Net pay", N.net]
+  ];
+  document.getElementById("rows").innerHTML = stub.map(r =>
+    r[0]==="section" ? `<tr class="section"><td colspan="3">${r[1]}</td></tr>`
+    : `<tr class="${r[0]}"><td>${r[1]}</td><td class="n">${fmt(P(r[2]))}</td><td class="n">${fmt(r[2])}</td></tr>`).join("");
+  document.getElementById("netPay").textContent = fmt(P(N.net));
+  document.getElementById("netAnnual").textContent = `${fmt(N.net)} a year · ${fmt(P(N.gross))} gross per pay`;
+  const m = (margRate(N.taxable,FED)+margRate(N.taxable,BC))*100;
+  document.getElementById("marg").textContent = m.toFixed(2).replace(/\.?0+$/,"")+"%";
+  document.getElementById("avg").textContent = N.gross ? ((N.fed+N.bc)/N.gross*100).toFixed(1)+"%" : "0%";
+  document.getElementById("hpp").textContent = (hrs*52/PAYS).toFixed(2).replace(/\.?0+$/,"");
+  document.getElementById("taxSum").textContent = fmt(preTaxPay);
+  document.getElementById("benSum").textContent = fmt(benPay);
+
+  // Comparison
+  const dRate = num("rate") - num("cur");
+  const pctRaise = num("cur") ? dRate/num("cur")*100 : 0;
+  document.getElementById("raiseFacts").innerHTML =
+    `<span class="chip">Raise <b>${sfmt(dRate)}/hr</b></span><span class="chip">Increase <b>${pctRaise.toFixed(1)}%</b></span>`;
+
+  const dGross = N.gross - C.gross, dNet = N.net - C.net, dCost = N.erTotal - C.erTotal;
+  document.getElementById("vGross").textContent = sfmt(dGross,0);
+  document.getElementById("vGrossSub").textContent = `a year in gross wages · ${sfmt(P(dGross))} per pay`;
+  document.getElementById("vNet").textContent = sfmt(dNet,0);
+  document.getElementById("vNetSub").textContent = `a year after tax · ${sfmt(P(dNet))} per pay` +
+    (dGross>0 ? ` · keeps ${(dNet/dGross*100).toFixed(0)}% of the raise` : "");
+  document.getElementById("vCost").textContent = sfmt(dCost,0);
+  document.getElementById("vCostSub").textContent = `a year total cost · ${sfmt(P(dCost))} per pay` +
+    (dGross>0 ? ` · ${(dCost/dGross*100).toFixed(0)}% of the raise` : "");
+
+  const keep = Math.max(0,dNet), taxes = Math.max(0, dGross - dNet), on = Math.max(0, dCost - dGross);
+  const tot = keep+taxes+on || 1;
+  const spans = document.querySelectorAll("#bar span");
+  [keep,taxes,on].forEach((v,i)=> spans[i].style.width = (v/tot*100)+"%");
+  document.getElementById("lgK").textContent = (keep/tot*100).toFixed(0)+"%";
+  document.getElementById("lgT").textContent = (taxes/tot*100).toFixed(0)+"%";
+  document.getElementById("lgO").textContent = (on/tot*100).toFixed(0)+"%";
+
+  const emp = [
+    ["Gross wages", C.gross, N.gross],
+    ["CPP + CPP2", -C.cpp, -N.cpp],
+    ["EI", -C.ei, -N.ei],
+    ["Federal tax", -C.fed, -N.fed],
+    ["BC tax", -C.bc, -N.bc],
+    ["Pre-tax + benefit deductions", -(C.preTax+C.benefits), -(N.preTax+N.benefits)],
+    ["Net take-home", C.net, N.net, "total"]
+  ]; emp.kind = "up";
+  const ers = [
+    ["Wages", C.gross, N.gross],
+    ["Vacation pay", C.vac, N.vac],
+    ["Employer CPP + CPP2", C.erCpp, N.erCpp],
+    ["Employer EI", C.erEi, N.erEi],
+    ["Employer Health Tax", C.eht, N.eht],
+    ["WorkSafeBC", C.wcb, N.wcb],
+    ["Pay-linked benefits", C.erBen, N.erBen],
+    ["Total employer cost", C.erTotal, N.erTotal, "total"]
+  ]; ers.kind = "cost";
+  document.getElementById("empRows").innerHTML = rowsHTML(emp);
+  document.getElementById("erRows").innerHTML = rowsHTML(ers);
+}
+document.addEventListener("input", calc);
+calc();
+</script>
+</body>
+</html>
